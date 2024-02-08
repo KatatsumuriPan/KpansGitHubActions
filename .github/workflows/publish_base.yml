@@ -13,7 +13,16 @@ on:
         type: string
         description: 'Commit id'
         default: ''
-
+    secrets:
+      PAT_GITHUB:
+        description: 'CurseForge API key'
+        required: false
+      CURSEFORGE_TOKEN:
+        description: 'CurseForge API key'
+        required: false
+      MODRINTH_TOKEN:
+        description: 'Modrinth API key'
+        required: false
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +34,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # これが無いと正しくタグの存在を判定できない模様
+          token: ${{ secrets.PAT_GITHUB }}
 
       - name: 環境変数の読み込み
         run: |
@@ -92,6 +102,22 @@ jobs:
             exit 1
           fi
 
+      - name: Check CurseForge API tokens
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}
+        run: |
+          if [ -z "${{ secrets.CURSEFORGE_TOKEN }}" ]; then
+            echo "CURSEFORGE_TOKEN is not set, aborting workflow."
+            exit 1
+          fi
+
+      - name: Check Modrinth API tokens
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}
+        run: |
+          if [ -z "${{ secrets.MODRINTH_TOKEN }}" ]; then
+            echo "MODRINTH_TOKEN is not set, aborting workflow."
+            exit 1
+          fi
+
       - name: Check if tag already exists
         if: ${{ contains(github.event.inputs.mod_platform, 'Github') }}
         run: |
@@ -100,9 +126,8 @@ jobs:
             exit 1
           fi
 
-
       - name: Setup Build
-        uses: ./.github/actions/build_setup
+        uses: KatatsumuriPan/KpansGitHubActions/.github/actions/build_setup@main
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -110,19 +135,29 @@ jobs:
       - name: Build Project
         run: ./gradlew --scan --build-cache --info --stacktrace build
 
-      - name: Publish to CurseForge and Modrinth and Github
+      - name: Publish to Github
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ github.event.inputs.mod_platform == 'CurseForge and Modrinth and Github' }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'Github') }}
         with:
           github-tag: "${{ env.TAG_NAME }}"
           github-generate-changelog: false
           github-commitish: "${{ env.COMMITISH }}"  # タグを生成するブランチorコミット
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          modrinth-id: "${{ env.MODRINTH_ID }}"
-          modrinth-token: "${{ secrets.MODRINTH_API_KEY }}"
-          modrinth-dependencies: "${{ steps.dependencies.outputs.MODRINTH }}"
+          github-token: "${{ secrets.PAT_GITHUB }}"
+          files: |
+            build/libs/!(*-@(dev|sources|javadoc)).jar
+            build/libs/*-@(sources).jar
+          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER == 'forge' && 'Forge' || 'Fabric' }})-${{ env.RELEASE_VERSION }}"
+          changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
+          version: "${{ env.RELEASE_VERSION }}"
+          version-type: "release"
+          retry-attempts: 2
+
+      - name: Publish to Curseforge
+        uses: Kir-Antipov/mc-publish@v3.3
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}
+        with:
           curseforge-id: "${{ env.CURSEFORGE_ID }}"
-          curseforge-token: "${{ secrets.CURSEFORGE_API_KEY }}"
+          curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
           curseforge-dependencies: "${{ steps.dependencies.outputs.CURSEFORGE }}"
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
@@ -136,31 +171,12 @@ jobs:
           java: "${{ startsWith(env.MC_VERSION, '1.16.') && '16\n17\n18' || (startsWith(env.MC_VERSION, '1.17.') || startsWith(env.MC_VERSION, '1.18.') || startsWith(env.MC_VERSION, '1.19.') || startsWith(env.MC_VERSION, '1.20.')) && '17\n18' || '8' }}"
           retry-attempts: 2
 
-      - name: Publish only to Curseforge
+      - name: Publish to Modrinth
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ github.event.inputs.mod_platform == 'CurseForge' }}
-        with:
-          curseforge-id: "${{ env.CURSEFORGE_ID }}"
-          curseforge-token: "${{ secrets.CURSEFORGE_API_KEY }}"
-          curseforge-dependencies: "${{ steps.dependencies.outputs.CURSEFORGE }}"
-          files: |
-            build/libs/!(*-@(dev|sources|javadoc)).jar
-            build/libs/*-@(sources).jar
-          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER == 'forge' && 'Forge' || 'Fabric' }})-${{ env.RELEASE_VERSION }}"
-          changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
-          version: "${{ env.RELEASE_VERSION }}"
-          version-type: "release"
-          loaders: "${{ env.MOD_LOADER }}"
-          game-versions: "${{ env.MC_VERSION }}"
-          java: "${{ startsWith(env.MC_VERSION, '1.16.') && '16\n17\n18' || (startsWith(env.MC_VERSION, '1.17.') || startsWith(env.MC_VERSION, '1.18.') || startsWith(env.MC_VERSION, '1.19.') || startsWith(env.MC_VERSION, '1.20.')) && '17\n18' || '8' }}"
-          retry-attempts: 2
-
-      - name: Publish only to Modrinth
-        uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ github.event.inputs.mod_platform == 'Modrinth' }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}
         with:
           modrinth-id: "${{ env.MODRINTH_ID }}"
-          modrinth-token: "${{ secrets.MODRINTH_API_KEY }}"
+          modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
           modrinth-dependencies: "${{ steps.dependencies.outputs.MODRINTH }}"
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
@@ -172,21 +188,4 @@ jobs:
           loaders: "${{ env.MOD_LOADER }}"
           game-versions: "${{ env.MC_VERSION }}"
           java: "${{ startsWith(env.MC_VERSION, '1.16.') && '16\n17\n18' || (startsWith(env.MC_VERSION, '1.17.') || startsWith(env.MC_VERSION, '1.18.') || startsWith(env.MC_VERSION, '1.19.') || startsWith(env.MC_VERSION, '1.20.')) && '17\n18' || '8' }}"
-          retry-attempts: 2
-
-      - name: Publish only to Github
-        uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ github.event.inputs.mod_platform == 'Github' }}
-        with:
-          github-tag: "${{ env.TAG_NAME }}"
-          github-generate-changelog: false
-          github-commitish: "${{ env.COMMITISH }}"  # タグを生成するブランチorコミット
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          files: |
-            build/libs/!(*-@(dev|sources|javadoc)).jar
-            build/libs/*-@(sources).jar
-          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER == 'forge' && 'Forge' || 'Fabric' }})-${{ env.RELEASE_VERSION }}"
-          changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
-          version: "${{ env.RELEASE_VERSION }}"
-          version-type: "release"
           retry-attempts: 2
