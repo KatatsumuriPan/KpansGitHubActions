@@ -120,9 +120,10 @@ jobs:
           fi
 
       - name: Check if tag already exists
-        if: ${{ contains(github.event.inputs.mod_platform, 'Github') }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'Github')  }}
         run: |
-          if git rev-parse --verify --quiet "${{ env.TAG_NAME }}"; then
+          git rev-parse --verify --quiet "${{ env.TAG_NAME }}"
+          if [ $? -eq 0 ] && [[ "${{ env.TAG_NAME }}" != "${{ env.COMMITISH }}" ]] ; then
             echo "Tag ${{ env.TAG_NAME }} already exists, aborting workflow."
             exit 1
           fi
