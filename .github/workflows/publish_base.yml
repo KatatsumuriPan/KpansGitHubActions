@@ -72,7 +72,7 @@ jobs:
         run: |
           {
             echo 'CHANGELOG<<EOF'
-            echo '## What's Changed'
+            echo "## What's Changed\n"
             cat "CHANGELOG.md" | tr -d '\r\n' | awk 'BEGIN{FS="###"}{printf $2}' | sed -r -e "s/ \[[^)]*\) - ....-..-..//" -e "s/\.- /.\n- /g"
             echo -e "\nEOF"
           } >> $GITHUB_OUTPUT
