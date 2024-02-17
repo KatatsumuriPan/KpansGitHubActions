@@ -17,5 +17,5 @@ jobs:
 
       - name: 環境変数の読み込み
         run: |
-          echo abc${BRANCH_NAME}
+          echo abc${env.BRANCH_NAME}
 
