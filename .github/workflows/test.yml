@@ -22,5 +22,5 @@ jobs:
 
       - name: a
         run: |
-          echo NAME=${NAME}
+          echo NAME=${NAME^}
 
