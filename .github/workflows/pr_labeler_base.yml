@@ -27,7 +27,6 @@ jobs:
 
       - name: Label PRs
         run: |
-          echo "${{ inputs.branch_name }}"
           l1=$(echo "${{ inputs.branch_name }}" | sed "s/\/.*//")
           l2=$(echo "${{ inputs.branch_name }}" | sed "s/.*\///")
           echo $l1
