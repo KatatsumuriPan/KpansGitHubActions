@@ -12,6 +12,11 @@ jobs:
       BRANCH_NAME: "${{ github.base_ref }}"
       GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # これが無いと正しくタグの存在を判定できない模様
+
       - name: Label PRs
         run: |
           l1=$(echo "${{ env.BRANCH_NAME }}" | sed "s/\/.*//")
