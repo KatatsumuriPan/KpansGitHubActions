@@ -160,10 +160,10 @@ jobs:
         with:
           curseforge-id: "${{ env.CURSEFORGE_ID }}"
           curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
-          curseforge-dependencies: "${{ steps.dependencies.outputs.CURSEFORGE }}"
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
             build/libs/*-@(sources).jar
+          curseforge-dependencies: "${{ env.CURSEFORGE_DEPENDENCIES }}"
           name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER == 'forge' && 'Forge' || 'Fabric' }})-${{ env.RELEASE_VERSION }}"
           changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
           version: "${{ env.RELEASE_VERSION }}"
@@ -179,7 +179,7 @@ jobs:
         with:
           modrinth-id: "${{ env.MODRINTH_ID }}"
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
-          modrinth-dependencies: "${{ steps.dependencies.outputs.MODRINTH }}"
+          modrinth-dependencies: "${{ env.MODRINTH_DEPENDENCIES }}"
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
             build/libs/*-@(sources).jar
