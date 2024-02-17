@@ -21,6 +21,8 @@ jobs:
         run: |
           l1=$(echo "${{ env.BRANCH_NAME }}" | sed "s/\/.*//")
           l2=$(echo "${{ env.BRANCH_NAME }}" | sed "s/=.*\//=/")
+          echo $l1
+          echo $l2
           gh pr edit "$PR_NUMBER" --add-label $l1
           gh pr edit "$PR_NUMBER" --add-label $l2
 
