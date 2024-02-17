@@ -10,6 +10,7 @@ jobs:
     env:
       PR_NUMBER: "${{ github.event.pull_request.number }}"
       BRANCH_NAME: "${{ github.base_ref }}"
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Label PRs
         run: |
