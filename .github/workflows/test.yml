@@ -18,6 +18,7 @@ jobs:
       - name: a
         run: |
           echo NAME=${BRANCH_NAME} >> $GITHUB_ENV
+          echo NAME=${NAME}
 
       - name: a
         run: |
