@@ -66,6 +66,7 @@ jobs:
       - name: 環境変数の動的構築2
         run: |
           echo "TAG_NAME=${{ env.MC_VERSION }}-${{ env.MOD_LOADER }}-${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+          echo MOD_LOADER_NAME=${MOD_LOADER^} >> $GITHUB_ENV
 
       - name: CHANGELOGの中身（先頭のみ）取得
         id: changelog
@@ -82,6 +83,7 @@ jobs:
           echo "NAME" "${{ env.NAME }}"
           echo "MC_VERSION" "${{ env.MC_VERSION }}"
           echo "MOD_LOADER" "${{ env.MOD_LOADER }}"
+          echo "MOD_LOADER_NAME" "${{ env.MOD_LOADER_NAME }}"
           echo "RELEASE_VERSION" "${{ env.RELEASE_VERSION }}"
           echo "TAG_NAME" "${{ env.TAG_NAME }}"
           echo "COMMITISH" "${{ env.COMMITISH }}"
@@ -148,7 +150,7 @@ jobs:
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
             build/libs/*-@(sources).jar
-          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER == 'forge' && 'Forge' || 'Fabric' }})-${{ env.RELEASE_VERSION }}"
+          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER_NAME }})-${{ env.RELEASE_VERSION }}"
           changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
           version: "${{ env.RELEASE_VERSION }}"
           version-type: "release"
@@ -164,7 +166,7 @@ jobs:
             build/libs/!(*-@(dev|sources|javadoc)).jar
             build/libs/*-@(sources).jar
           curseforge-dependencies: "${{ env.CURSEFORGE_DEPENDENCIES }}"
-          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER == 'forge' && 'Forge' || 'Fabric' }})-${{ env.RELEASE_VERSION }}"
+          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER_NAME }})-${{ env.RELEASE_VERSION }}"
           changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
           version: "${{ env.RELEASE_VERSION }}"
           version-type: "release"
@@ -183,7 +185,7 @@ jobs:
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
             build/libs/*-@(sources).jar
-          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER == 'forge' && 'Forge' || 'Fabric' }})-${{ env.RELEASE_VERSION }}"
+          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER_NAME }})-${{ env.RELEASE_VERSION }}"
           changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
           version: "${{ env.RELEASE_VERSION }}"
           version-type: "release"
