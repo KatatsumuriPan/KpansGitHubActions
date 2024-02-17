@@ -23,6 +23,6 @@ jobs:
           l2=$(echo "${BRANCH_NAME}" | sed "s/.*\///")
           echo $l1
           echo $l2
-          gh pr edit "$PR_NUMBER" --add-label $l1
+          gh pr edit "{$PR_NUMBER}" --add-label $l1
           gh pr edit "$PR_NUMBER" --add-label $l2
 
