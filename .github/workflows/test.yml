@@ -1,13 +1,21 @@
-# This is test workflow
+# Add labels when PR opened.
 name: Test
 
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BRANCH_NAME: "${{ github.ref_name }}"
     steps:
-      - name: Hello
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # これが無いと正しくタグの存在を判定できない模様
+          token: ${{ secrets.PAT_GITHUB }}
+
+      - name: 環境変数の読み込み
         run: |
-          echo world!
+          echo abc${BRANCH_NAME}
+
