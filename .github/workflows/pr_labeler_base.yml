@@ -27,10 +27,11 @@ jobs:
 
       - name: Label PRs
         run: |
-          l1=$(echo "${{ github.event.inputs.pr_number }}" | sed "s/\/.*//")
-          l2=$(echo "${{ github.event.inputs.pr_number }}" | sed "s/.*\///")
+          echo "${{ github.event.inputs.branch_name }}"
+          l1=$(echo "${{ github.event.inputs.branch_name }}" | sed "s/\/.*//")
+          l2=$(echo "${{ github.event.inputs.branch_name }}" | sed "s/.*\///")
           echo $l1
           echo $l2
-          gh pr edit "${{ github.event.inputs.branch_name }}" --add-label $l1
-          gh pr edit "${{ github.event.inputs.branch_name }}" --add-label $l2
+          gh pr edit "${{ github.event.inputs.pr_number }}" --add-label $l1
+          gh pr edit "${{ github.event.inputs.pr_number }}" --add-label $l2
 
