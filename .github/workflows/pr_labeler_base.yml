@@ -4,11 +4,11 @@ name: PR_Labeler
 on:
   workflow_call:
     inputs:
-      PR_NUMBER:
+      pr_number:
         type: string
         description: 'Pull Request Number'
         default: ''
-      BRANCH_NAME:
+      branch_name:
         type: string
         description: 'Base Branch Name'
         default: ''
@@ -27,10 +27,10 @@ jobs:
 
       - name: Label PRs
         run: |
-          l1=$(echo "${{ github.event.inputs.PR_NUMBER }}" | sed "s/\/.*//")
-          l2=$(echo "${{ github.event.inputs.PR_NUMBER }}" | sed "s/.*\///")
+          l1=$(echo "${{ github.event.inputs.pr_number }}" | sed "s/\/.*//")
+          l2=$(echo "${{ github.event.inputs.pr_number }}" | sed "s/.*\///")
           echo $l1
           echo $l2
-          gh pr edit "${{ github.event.inputs.BRANCH_NAME }}" --add-label $l1
-          gh pr edit "${{ github.event.inputs.BRANCH_NAME }}" --add-label $l2
+          gh pr edit "${{ github.event.inputs.branch_name }}" --add-label $l1
+          gh pr edit "${{ github.event.inputs.branch_name }}" --add-label $l2
 
