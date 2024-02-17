@@ -15,7 +15,11 @@ jobs:
           fetch-depth: 0 # これが無いと正しくタグの存在を判定できない模様
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 環境変数の読み込み
+      - name: a
         run: |
-          echo abc${env.BRANCH_NAME}
+          echo NAME=${BRANCH_NAME} >> $GITHUB_ENV
+
+      - name: a
+        run: |
+          echo NAME=${NAME}
 
