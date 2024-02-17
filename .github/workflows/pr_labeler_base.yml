@@ -6,8 +6,12 @@ on:
     inputs:
       PR_NUMBER:
         type: string
+        description: 'Pull Request Number'
+        default: ''
       BRANCH_NAME:
         type: string
+        description: 'Base Branch Name'
+        default: ''
 
 jobs:
   build:
