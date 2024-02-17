@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.action == 'opened'
     env:
-      PR_NUMBER: "${{ github.event.inputs.PR_NUMBER }}"
-      BRANCH_NAME: "${{ github.event.inputs.BRANCH_NAME }}"
       GH_TOKEN: "${{ github.token }}"
     steps:
       - name: Checkout Repository
@@ -25,10 +23,10 @@ jobs:
 
       - name: Label PRs
         run: |
-          l1=$(echo "${BRANCH_NAME}" | sed "s/\/.*//")
-          l2=$(echo "${BRANCH_NAME}" | sed "s/.*\///")
+          l1=$(echo "${{ github.event.inputs.PR_NUMBER }}" | sed "s/\/.*//")
+          l2=$(echo "${{ github.event.inputs.PR_NUMBER }}" | sed "s/.*\///")
           echo $l1
           echo $l2
-          gh pr edit "${PR_NUMBER}" --add-label $l1
-          gh pr edit "${PR_NUMBER}" --add-label $l2
+          gh pr edit "${{ github.event.inputs.BRANCH_NAME }}" --add-label $l1
+          gh pr edit "${{ github.event.inputs.BRANCH_NAME }}" --add-label $l2
 
