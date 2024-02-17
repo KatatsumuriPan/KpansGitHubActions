@@ -1,0 +1,20 @@
+# Add labels when PR opened.
+name: PR_Labeler
+
+on: pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    env:
+      PR_NUMBER: "${{ github.event.pull_request.number }}"
+      BRANCH_NAME: "${{ github.base_ref }}"
+    steps:
+      - name: Label PRs
+        run: |
+          l1=$(echo "${{ env.BRANCH_NAME }}" | sed "s/\/.*//")
+          l2=$(echo "${{ env.BRANCH_NAME }}" | sed "s/=.*\//=/")
+          gh pr edit "$PR_NUMBER" --add-label $l1
+          gh pr edit "$PR_NUMBER" --add-label $l2
+
