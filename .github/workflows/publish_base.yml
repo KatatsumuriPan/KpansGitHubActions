@@ -15,7 +15,7 @@ on:
         default: ''
     secrets:
       PAT_GITHUB:
-        description: 'CurseForge API key'
+        description: 'Github API key'
         required: false
       CURSEFORGE_TOKEN:
         description: 'CurseForge API key'
