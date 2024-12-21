@@ -32,8 +32,8 @@ jobs:
           echo $mc_version
           echo $mod_loader
           gh pr edit "${{ inputs.pr_number }}" --add-label $mc_version
-          if [[ "${{ mod_loader }}" != "multiloader" ]]; then
-            echo 'Expected branch name is "multiloader", actuial: ${{ mod_loader }}'
+          if [[ "${mod_loader}" != "multiloader" ]]; then
+            echo 'Expected branch name is "multiloader", actuial: ${mod_loader}'
             exit 1
           fi
 
