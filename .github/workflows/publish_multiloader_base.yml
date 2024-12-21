@@ -71,7 +71,7 @@ jobs:
 
       - name: 環境変数の動的構築2
         run: |
-          echo "TAG_NAME=${{ env.BRANCH_NAME }}" | sed "s/\//-/"-${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+          echo "TAG_NAME=${{ env.BRANCH_NAME }}-${{ env.RELEASE_VERSION }}" | sed "s/\//-/" >> $GITHUB_ENV
 
       - name: CHANGELOGの中身（先頭のみ）取得
         id: changelog
