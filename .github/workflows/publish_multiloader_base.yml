@@ -37,8 +37,6 @@ jobs:
       ENV_FILE_NAME: publish_env.yml
       BRANCH_NAME: "${{ github.ref_name }}"
     steps:
-      - ${{ each environment in parameters.envList }}:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
