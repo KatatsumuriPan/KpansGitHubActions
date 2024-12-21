@@ -27,10 +27,10 @@ jobs:
 
       - name: Label PRs
         run: |
-          l1=$(echo "${{ inputs.branch_name }}" | sed "s/\/.*//")
-          l2=$(echo "${{ inputs.branch_name }}" | sed "s/.*\///")
-          echo $l1
-          echo $l2
-          gh pr edit "${{ inputs.pr_number }}" --add-label $l1
-          gh pr edit "${{ inputs.pr_number }}" --add-label $l2
+          mc_version=$(echo "${{ inputs.branch_name }}" | sed "s/\/.*//")
+          mod_loader=$(echo "${{ inputs.branch_name }}" | sed "s/.*\///")
+          echo $mc_version
+          echo $mod_loader
+          gh pr edit "${{ inputs.pr_number }}" --add-label $mc_version
+          gh pr edit "${{ inputs.pr_number }}" --add-label $mod_loader
 
