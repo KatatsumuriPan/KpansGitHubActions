@@ -1,0 +1,39 @@
+# Add labels when PR opened.
+name: PR_Labeler
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        type: string
+        description: 'Pull Request Number'
+        default: ''
+      branch_name:
+        type: string
+        description: 'Base Branch Name'
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    env:
+      GH_TOKEN: "${{ github.token }}"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Label PRs
+        run: |
+          mc_version=$(echo "${{ inputs.branch_name }}" | sed "s/\/.*//")
+          mod_loader=$(echo "${{ inputs.branch_name }}" | sed "s/.*\///")
+          echo $mc_version
+          echo $mod_loader
+          gh pr edit "${{ inputs.pr_number }}" --add-label $mc_version
+          if [[ "${{ mod_loader }}" != "multiloader" ]]; then
+            echo 'Expected branch name is "multiloader", actuial: ${{ mod_loader }}'
+            exit 1
+          fi
+

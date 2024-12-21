@@ -1,0 +1,199 @@
+# Publishes built jars to distribution platforms
+name: Publish
+
+on:
+  workflow_call:
+    strategy:
+      matrix:
+        # Each modloader
+        modloader: [ forge, fabric ]
+    inputs:
+      mod_platform:
+        description: 'Mod platform'
+        type: string
+        default: 'CurseForge and Modrinth and Github'
+
+      commitish:
+        type: string
+        description: 'Commit id'
+        default: ''
+    secrets:
+      PAT_GITHUB:
+        description: 'Github API key'
+        required: false
+      CURSEFORGE_TOKEN:
+        description: 'CurseForge API key'
+        required: false
+      MODRINTH_TOKEN:
+        description: 'Modrinth API key'
+        required: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ENV_FILE_NAME: publish_env.yml
+      BRANCH_NAME: "${{ github.ref_name }}"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # これが無いと正しくタグの存在を判定できない模様
+          token: ${{ secrets.PAT_GITHUB }}
+
+      - name: 環境変数の読み込み
+        run: |
+          echo NAME=$(yq '.NAME' ${{ env.ENV_FILE_NAME }}) >> $GITHUB_ENV
+          echo CURSEFORGE_ID=$(yq '.CURSEFORGE_ID' ${{ env.ENV_FILE_NAME }}) >> $GITHUB_ENV
+          echo MODRINTH_ID=$(yq '.MODRINTH_ID' ${{ env.ENV_FILE_NAME }}) >> $GITHUB_ENV
+          {
+            echo 'CURSEFORGE_DEPENDENCIES<<EOF'
+            echo $(yq '.CURSEFORGE_DEPENDENCIES' ${{ env.ENV_FILE_NAME }}) | tr " " "\n"
+            echo EOF
+          } >> $GITHUB_ENV
+          {
+            echo 'MODRINTH_DEPENDENCIES<<EOF'
+            echo $(yq '.MODRINTH_DEPENDENCIES' ${{ env.ENV_FILE_NAME }}) | tr " " "\n"
+            echo EOF
+          } >> $GITHUB_ENV
+
+      - name: 環境変数の動的構築
+        run: |
+          echo "MC_VERSION=${{ env.BRANCH_NAME }}" | sed "s/\/.*//" >> $GITHUB_ENV
+          echo "MOD_LOADER=${{ matrix.modloader }}" >> $GITHUB_ENV
+          cat "CHANGELOG.md" | tr -d '\r\n' | sed -r "s/[^-]*-[^-]*-([^]]*).*/RELEASE_VERSION=\1\n/"  >> $GITHUB_ENV
+          if [ -z "${{ github.event.inputs.commitish }}" ]; then
+            echo "COMMITISH=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          else
+            echo "COMMITISH=${{ github.event.inputs.commitish }}" >> $GITHUB_ENV
+          fi
+
+      - name: 環境変数の動的構築2
+        run: |
+          echo "TAG_NAME=${{ env.MC_VERSION }}-${{ env.MOD_LOADER }}-${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+          echo MOD_LOADER_NAME=${MOD_LOADER^} >> $GITHUB_ENV
+
+      - name: CHANGELOGの中身（先頭のみ）取得
+        id: changelog
+        run: |
+          {
+            echo 'CHANGELOG<<EOF'
+            echo "## What's Changed"
+            cat "CHANGELOG.md" | tr -d '\r\n' | awk 'BEGIN{FS="###"}{printf $2}' | sed -r -e "s/ \[[^)]*\) - ....-..-..//" -e "s/\.- /.\n- /g"
+            echo -e "\nEOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Check properties
+        run: |
+          echo "NAME" "${{ env.NAME }}"
+          echo "MC_VERSION" "${{ env.MC_VERSION }}"
+          echo "MOD_LOADER" "${{ env.MOD_LOADER }}"
+          echo "MOD_LOADER_NAME" "${{ env.MOD_LOADER_NAME }}"
+          echo "RELEASE_VERSION" "${{ env.RELEASE_VERSION }}"
+          echo "TAG_NAME" "${{ env.TAG_NAME }}"
+          echo "COMMITISH" "${{ env.COMMITISH }}"
+          echo "CHANGELOG" "${{ steps.changelog.outputs.CHANGELOG }}"
+          echo "CURSEFORGE_ID" "${{ env.CURSEFORGE_ID }}"
+          echo "CURSEFORGE_DEPENDENCIES" "${{ env.CURSEFORGE_DEPENDENCIES }}"
+          echo "MODRINTH_ID" "${{ env.MODRINTH_ID }}"
+          echo "MODRINTH_DEPENDENCIES" "${{ env.MODRINTH_DEPENDENCIES }}"
+          if [[ "${{ env.MC_VERSION }}" != *"."* ]]; then
+            echo 'Invalid MC version "${{ env.MC_VERSION }}", aborting workflow.'
+            exit 1
+          fi
+          if [ "${{ env.MOD_LOADER }}" != "forge" ] && [ "${{ env.MOD_LOADER }}" != "fabric" ]; then
+            echo 'Invalid mod loader "${{ env.MOD_LOADER }}", aborting workflow.'
+            exit 1
+          fi
+          if [ -z "${{ env.RELEASE_VERSION }}" ]; then
+            echo 'Invalid release version "${{ env.RELEASE_VERSION }}", aborting workflow.'
+            exit 1
+          fi
+
+      - name: Check CurseForge API tokens
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}
+        run: |
+          if [ -z "${{ secrets.CURSEFORGE_TOKEN }}" ]; then
+            echo "CURSEFORGE_TOKEN is not set, aborting workflow."
+            exit 1
+          fi
+
+      - name: Check Modrinth API tokens
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}
+        run: |
+          if [ -z "${{ secrets.MODRINTH_TOKEN }}" ]; then
+            echo "MODRINTH_TOKEN is not set, aborting workflow."
+            exit 1
+          fi
+
+      - name: Check if tag already exists
+        if: ${{ contains(github.event.inputs.mod_platform, 'Github') }}
+        run: |
+          
+          if git rev-parse --verify --quiet "${{ env.TAG_NAME }}" && [[ "${{ env.TAG_NAME }}" != "${{ env.COMMITISH }}" ]] ; then
+            echo "Tag ${{ env.TAG_NAME }} already exists, aborting workflow."
+            exit 1
+          fi
+
+      - name: Setup Build
+        uses: KatatsumuriPan/KpansGitHubActions/.github/actions/build_setup@main
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Project
+        run: ./gradlew --scan --build-cache --info --stacktrace build
+
+      - name: Publish to Github
+        uses: Kir-Antipov/mc-publish@v3.3
+        if: ${{ contains(github.event.inputs.mod_platform, 'Github') }}
+        with:
+          github-tag: "${{ env.TAG_NAME }}"
+          github-generate-changelog: false
+          github-commitish: "${{ env.COMMITISH }}"  # タグを生成するブランチorコミット
+          github-token: "${{ secrets.PAT_GITHUB }}"
+          files: |
+            build/libs/!(*-@(dev|sources|javadoc)).jar
+            build/libs/*-@(sources).jar
+          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER_NAME }})-${{ env.RELEASE_VERSION }}"
+          changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
+          version: "${{ env.RELEASE_VERSION }}"
+          version-type: "release"
+          retry-attempts: 2
+
+      - name: Publish to Curseforge
+        uses: Kir-Antipov/mc-publish@v3.3
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}
+        with:
+          curseforge-id: "${{ env.CURSEFORGE_ID }}"
+          curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
+          files: |
+            build/libs/!(*-@(dev|sources|javadoc)).jar
+            build/libs/*-@(sources).jar
+          curseforge-dependencies: "${{ env.CURSEFORGE_DEPENDENCIES }}"
+          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER_NAME }})-${{ env.RELEASE_VERSION }}"
+          changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
+          version: "${{ env.RELEASE_VERSION }}"
+          version-type: "release"
+          loaders: "${{ env.MOD_LOADER }}"
+          game-versions: "${{ env.MC_VERSION }}"
+          java: "${{ startsWith(env.MC_VERSION, '1.16.') && '16\n17\n18' || (startsWith(env.MC_VERSION, '1.17.') || startsWith(env.MC_VERSION, '1.18.') || startsWith(env.MC_VERSION, '1.19.') || startsWith(env.MC_VERSION, '1.20.')) && '17\n18' || '8' }}"
+          retry-attempts: 2
+
+      - name: Publish to Modrinth
+        uses: Kir-Antipov/mc-publish@v3.3
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}
+        with:
+          modrinth-id: "${{ env.MODRINTH_ID }}"
+          modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
+          modrinth-dependencies: "${{ env.MODRINTH_DEPENDENCIES }}"
+          files: |
+            build/libs/!(*-@(dev|sources|javadoc)).jar
+            build/libs/*-@(sources).jar
+          name: "${{ env.NAME }}-${{ env.MC_VERSION }}(${{ env.MOD_LOADER_NAME }})-${{ env.RELEASE_VERSION }}"
+          changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
+          version: "${{ env.RELEASE_VERSION }}"
+          version-type: "release"
+          loaders: "${{ env.MOD_LOADER }}"
+          game-versions: "${{ env.MC_VERSION }}"
+          java: "${{ startsWith(env.MC_VERSION, '1.16.') && '16\n17\n18' || (startsWith(env.MC_VERSION, '1.17.') || startsWith(env.MC_VERSION, '1.18.') || startsWith(env.MC_VERSION, '1.19.') || startsWith(env.MC_VERSION, '1.20.')) && '17\n18' || '8' }}"
+          retry-attempts: 2
