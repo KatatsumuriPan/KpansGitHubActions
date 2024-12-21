@@ -5,8 +5,12 @@ on:
   workflow_call:
     strategy:
       matrix:
-        # Each modloader
-        modloader: [ forge, fabric ]
+        ${{ if github.event.inputs.mod_loader_fabric }}:
+          fabric:
+            mod_loader: 'fabric'
+        ${{ if github.event.inputs.mod_loader_forge }}:
+          forge:
+            mod_loader: 'forge'
     inputs:
       mod_platform:
         description: 'Mod platform'
