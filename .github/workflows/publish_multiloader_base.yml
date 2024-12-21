@@ -101,7 +101,7 @@ jobs:
             echo 'Invalid MC version "${{ env.MC_VERSION }}", aborting workflow.'
             exit 1
           fi
-          if [ "${{ github.event.inputs.mod_loader_fabric }}" == false ] && [ "${{ egithub.event.inputs.mod_loader_forge }}" == false ]; then
+          if [ "${{ github.event.inputs.mod_loader_fabric }}" == false ] && [ "${{ github.event.inputs.mod_loader_forge }}" == false ]; then
             echo 'No selected mod loader, aborting workflow.'
             exit 1
           fi
