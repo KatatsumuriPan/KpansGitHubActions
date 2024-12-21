@@ -14,12 +14,12 @@ on:
         default: ''
       mod_loader_fabric:
         description: 'Release Fabric'
-        type: boolean
-        default: true
+        type: string
+        default: 'true'
       mod_loader_forge:
         description: 'Release Forge'
-        type: boolean
-        default: true
+        type: string
+        default: 'true'
     secrets:
       PAT_GITHUB:
         description: 'Github API key'
@@ -101,7 +101,7 @@ jobs:
             echo 'Invalid MC version "${{ env.MC_VERSION }}", aborting workflow.'
             exit 1
           fi
-          if [ "${{ github.event.inputs.mod_loader_fabric }}" == false ] && [ "${{ github.event.inputs.mod_loader_forge }}" == false ]; then
+          if [ "${{ github.event.inputs.mod_loader_fabric }}" != 'true' ] && [ "${{ github.event.inputs.mod_loader_forge }}" != 'true' ]; then
             echo 'No selected mod loader, aborting workflow.'
             exit 1
           fi
@@ -142,11 +142,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build Fabric Project
-        if: ${{ github.event.inputs.mod_loader_fabric }}
+        if: ${{ github.event.inputs.mod_loader_fabric == 'true' }}
         run: ./gradlew --scan --build-cache --info --stacktrace fabric:build
 
       - name: Build Forge Project
-        if: ${{ github.event.inputs.mod_loader_forge }}
+        if: ${{ github.event.inputs.mod_loader_forge == 'true' }}
         run: ./gradlew --scan --build-cache --info --stacktrace forge:build
 
 
@@ -159,10 +159,10 @@ jobs:
           github-commitish: "${{ env.COMMITISH }}"  # タグを生成するブランチorコミット
           github-token: "${{ secrets.PAT_GITHUB }}"
           files: |
-            if ${{ github.event.inputs.mod_loader_fabric }}:
+            if ${{ github.event.inputs.mod_loader_fabric == 'true' }}:
               fabric/build/libs/!(*-@(dev|sources|javadoc)).jar
               fabric/build/libs/*-@(sources).jar
-            if ${{ github.event.inputs.mod_loader_forge }}:
+            if ${{ github.event.inputs.mod_loader_forge == 'true' }}:
               forge/build/libs/!(*-@(dev|sources|javadoc)).jar
               forge/build/libs/*-@(sources).jar
           name: "${{ env.NAME }}-${{ env.MC_VERSION }}(MultiLoader)-${{ env.RELEASE_VERSION }}"
@@ -173,7 +173,7 @@ jobs:
 
       - name: Publish to Curseforge(Fabric)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}&&${{ github.event.inputs.mod_loader_fabric }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}&&${{ github.event.inputs.mod_loader_fabric == 'true' }}
         with:
           curseforge-id: "${{ env.CURSEFORGE_ID }}"
           curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
@@ -192,7 +192,7 @@ jobs:
 
       - name: Publish to Curseforge(Forge)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}&&${{ github.event.inputs.mod_loader_forge }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}&&${{ github.event.inputs.mod_loader_forge == 'true' }}
         with:
           curseforge-id: "${{ env.CURSEFORGE_ID }}"
           curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
@@ -211,7 +211,7 @@ jobs:
 
       - name: Publish to Modrinth(Fabric)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}&&${{ github.event.inputs.mod_loader_fabric }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}&&${{ github.event.inputs.mod_loader_fabric == 'true' }}
         with:
           modrinth-id: "${{ env.MODRINTH_ID }}"
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
@@ -230,7 +230,7 @@ jobs:
 
       - name: Publish to Modrinth(Forge)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}&&${{ github.event.inputs.mod_loader_forge }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}&&${{ github.event.inputs.mod_loader_forge == 'true' }}
         with:
           modrinth-id: "${{ env.MODRINTH_ID }}"
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
