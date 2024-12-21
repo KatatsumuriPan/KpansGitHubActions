@@ -197,8 +197,8 @@ jobs:
           curseforge-id: "${{ env.CURSEFORGE_ID }}"
           curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
           files: |
-            build/libs/!(*-@(dev|sources|javadoc)).jar
-            build/libs/*-@(sources).jar
+            forge/build/libs/!(*-@(dev|sources|javadoc)).jar
+            forge/build/libs/*-@(sources).jar
           curseforge-dependencies: "${{ env.CURSEFORGE_DEPENDENCIES }}"
           name: "${{ env.NAME }}-${{ env.MC_VERSION }}(Forge)-${{ env.RELEASE_VERSION }}"
           changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
@@ -217,8 +217,8 @@ jobs:
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
           modrinth-dependencies: "${{ env.MODRINTH_DEPENDENCIES }}"
           files: |
-            build/libs/!(*-@(dev|sources|javadoc)).jar
-            build/libs/*-@(sources).jar
+            fabric/build/libs/!(*-@(dev|sources|javadoc)).jar
+            fabric/build/libs/*-@(sources).jar
           name: "${{ env.NAME }}-${{ env.MC_VERSION }}(Fabric)-${{ env.RELEASE_VERSION }}"
           changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
           version: "${{ env.RELEASE_VERSION }}"
@@ -236,8 +236,8 @@ jobs:
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
           modrinth-dependencies: "${{ env.MODRINTH_DEPENDENCIES }}"
           files: |
-            build/libs/!(*-@(dev|sources|javadoc)).jar
-            build/libs/*-@(sources).jar
+            forge/build/libs/!(*-@(dev|sources|javadoc)).jar
+            forge/build/libs/*-@(sources).jar
           name: "${{ env.NAME }}-${{ env.MC_VERSION }}(Forge)-${{ env.RELEASE_VERSION }}"
           changelog: "${{ steps.changelog.outputs.CHANGELOG }}"
           version: "${{ env.RELEASE_VERSION }}"
