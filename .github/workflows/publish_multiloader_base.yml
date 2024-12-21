@@ -173,7 +173,7 @@ jobs:
 
       - name: Publish to Curseforge(Fabric)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}&&${{ github.event.inputs.mod_loader_fabric == 'true' }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') && github.event.inputs.mod_loader_fabric == 'true' }}
         with:
           curseforge-id: "${{ env.CURSEFORGE_ID }}"
           curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
@@ -192,7 +192,7 @@ jobs:
 
       - name: Publish to Curseforge(Forge)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') }}&&${{ github.event.inputs.mod_loader_forge == 'true' }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'CurseForge') && github.event.inputs.mod_loader_forge == 'true' }}
         with:
           curseforge-id: "${{ env.CURSEFORGE_ID }}"
           curseforge-token: "${{ secrets.CURSEFORGE_TOKEN }}"
@@ -211,7 +211,7 @@ jobs:
 
       - name: Publish to Modrinth(Fabric)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}&&${{ github.event.inputs.mod_loader_fabric == 'true' }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') && github.event.inputs.mod_loader_fabric == 'true' }}
         with:
           modrinth-id: "${{ env.MODRINTH_ID }}"
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
@@ -230,7 +230,7 @@ jobs:
 
       - name: Publish to Modrinth(Forge)
         uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') }}&&${{ github.event.inputs.mod_loader_forge == 'true' }}
+        if: ${{ contains(github.event.inputs.mod_platform, 'Modrinth') && github.event.inputs.mod_loader_forge == 'true' }}
         with:
           modrinth-id: "${{ env.MODRINTH_ID }}"
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
